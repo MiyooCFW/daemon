@@ -38,6 +38,6 @@ button config default
 10 = backlight min max  
 11 = remount /mnt as rw  
 12 = remount /mnt as ro  
-12 = screenshot using fbgrab
+13 = screenshot using fbgrab  
 20 = kill, sync and shutdown  
 21 = kill. Does not work on most emulators. do not use  
