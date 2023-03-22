@@ -289,7 +289,7 @@ int main(int argc, char** argv)
   // update version
   ioctl(fb0, MIYOO_FB0_GET_VER, &ret);
   version = ret;
-  ioctl(kbd, MIYOO_KBD_SET_VER, ret);
+  // ioctl(kbd, MIYOO_KBD_SET_VER, ret);
   vir = open("/dev/miyoo_vir", O_RDWR);
   ioctl(vir, MIYOO_VIR_SET_VER, ret);
   close(vir);
