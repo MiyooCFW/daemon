@@ -19,12 +19,12 @@ jobs:
       image: nfriedly/miyoo-toolchain:latest
     steps:
     - run: echo "submodule ${{ inputs.submodule }} on ${{ github.event }}"
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - if: inputs.submodule
       run: git submodule update --init --depth 1 -- ${{ inputs.submodule }}
     - name: build
       run: cd ${{ inputs.submodule || '.' }} && make
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: miyoo_daemon
         path: ${{ inputs.submodule || '.' }}/daemon
@@ -36,12 +36,12 @@ jobs:
       image: nfriedly/miyoo-toolchain:steward
     steps:
     - run: echo "submodule ${{ inputs.submodule }} on ${{ github.event }}"
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - if: inputs.submodule
       run: git submodule update --init --depth 1 -- ${{ inputs.submodule }}
     - name: build
       run: cd ${{ inputs.submodule || '.' }} && make
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v3
       with:
         name: miyoo_daemon
         path: ${{ inputs.submodule || '.' }}/daemon
