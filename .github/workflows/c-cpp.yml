@@ -26,7 +26,7 @@ jobs:
       run: cd ${{ inputs.submodule || '.' }} && make
     - uses: actions/upload-artifact@v3
       with:
-        name: miyoo_daemon
+        name: miyoo_daemon-musl
         path: ${{ inputs.submodule || '.' }}/daemon
         if-no-files-found: error # 'error', 'warn', 'ignore'; defaults to `warn`
   build-legacy:
@@ -43,6 +43,6 @@ jobs:
       run: cd ${{ inputs.submodule || '.' }} && make
     - uses: actions/upload-artifact@v3
       with:
-        name: miyoo_daemon
+        name: miyoo_daemon-uclibc
         path: ${{ inputs.submodule || '.' }}/daemon
         if-no-files-found: error # 'error', 'warn', 'ignore'; defaults to `warn`
