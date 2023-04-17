@@ -13,10 +13,10 @@ on:
 
 jobs:   
   build-modern:
-    name: daemon for MiyooCFW 1.4+ (musl libc)
-    runs-on: ubuntu-20.04
+    name: daemon for MiyooCFW (musl)
+    runs-on: ubuntu-22.04
     container:
-      image: nfriedly/miyoo-toolchain:latest
+      image: miyoocfw/toolchain-shared-musl:master
     steps:
     - run: echo "submodule ${{ inputs.submodule }} on ${{ github.event }}"
     - uses: actions/checkout@v3
@@ -26,14 +26,15 @@ jobs:
       run: cd ${{ inputs.submodule || '.' }} && make
     - uses: actions/upload-artifact@v3
       with:
-        name: miyoo_daemon-musl
+        name: daemon (musl)
         path: ${{ inputs.submodule || '.' }}/daemon
         if-no-files-found: error # 'error', 'warn', 'ignore'; defaults to `warn`
+  
   build-legacy:
-    name: legacy daemon for Miyoo <=1.3.3 (uClibc)
-    runs-on: ubuntu-20.04
+    name: daemon for MiyooCFW (uClibc)
+    runs-on: ubuntu-22.04
     container:
-      image: nfriedly/miyoo-toolchain:steward
+      image: miyoocfw/toolchain-shared-uclibc:master
     steps:
     - run: echo "submodule ${{ inputs.submodule }} on ${{ github.event }}"
     - uses: actions/checkout@v3
@@ -43,6 +44,6 @@ jobs:
       run: cd ${{ inputs.submodule || '.' }} && make
     - uses: actions/upload-artifact@v3
       with:
-        name: miyoo_daemon-uclibc
+        name: daemon (uClibc)
         path: ${{ inputs.submodule || '.' }}/daemon
         if-no-files-found: error # 'error', 'warn', 'ignore'; defaults to `warn`
