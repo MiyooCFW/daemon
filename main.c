@@ -290,9 +290,9 @@ int main(int argc, char** argv)
   ioctl(fb0, MIYOO_FB0_GET_VER, &ret);
   version = ret;
   // ioctl(kbd, MIYOO_KBD_SET_VER, ret);
-  vir = open("/dev/miyoo_vir", O_RDWR);
+  /* vir = open("/dev/miyoo_vir", O_RDWR);
   ioctl(vir, MIYOO_VIR_SET_VER, ret);
-  close(vir);
+  close(vir); */
   lastret = 0;
   unsigned int counter = 0;
   unsigned int actioned = 0;
