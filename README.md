@@ -8,6 +8,8 @@ default: 3550
 
 ## Default Button Mappings
 
+Remember: all hotkeys will work only in combination with RESET/HOME button (see kernel's miyoo_kbd.c code)
+
 | BUTTON | ACTION |
 |  --- | --- |
 | Right | Brightness Up |
@@ -15,15 +17,17 @@ default: 3550
 | Down | Volume Down |
 | Up | Volume Up |
 | Start | Screenshot |
-| Hold Select | Quick Shutdown |
+| Select | Force-close app |
 
 ## Config
+**WARNING**: custom hotkeys defined here will only work when below file exist:  
 button config location  
 `/mnt/.buttons.conf`  
 button config format  
-`x:a:y:b:up:down:left:right:select:start:hold-x:hold-a:hold-y:hold-b:hold-up:hold-down:hold-left:hold-right:hold-select:hold-start`  
-button config default  
-`0:0:0:0:3:4:2:1:0:13:0:0:0:0:0:0:0:0:21:0` 
+`x:a:y:b:up:down:left:right:select:start:l2:r2:hold-x:hold-a:hold-y:hold-b:hold-up:hold-down:hold-left:hold-right:hold-select:hold-start:hold-l2:hold-r2`  
+button config file default values  
+`0:0:0:0:3:4:2:1:22:13:0:0:0:0:0:0:0:0:0:0:0:0:0:0`  
+<u>NOTE</u>: When enabling custom hotkeys an existing ones will be disable&overwritten by above defaults or any passed by user. However that doesn't apply to hardcoded ones like emulating L1/R1 or other additional buttons.
 
 ## Actions
 1 = backlight up  
@@ -40,4 +44,6 @@ button config default
 12 = remount /mnt as ro  
 13 = screenshot using fbgrab  
 20 = kill, sync and shutdown  
-21 = kill. Does not work on most emulators. do not use  
+21 = kill gui. Does not work on most apps. do not use  
+22 = kill force app. Work on most apps.
+23 = kill soft app. Work on a few apps, guaranties proper closing.

@@ -33,6 +33,7 @@
 #define MIYOO_VIR_SET_VER     _IOWR(0x101, 0, unsigned long)
 #define MIYOO_SND_SET_VOLUME  _IOWR(0x100, 0, unsigned long)
 #define MIYOO_KBD_GET_HOTKEY  _IOWR(0x100, 0, unsigned long)
+#define MIYOO_KBD_SET_HOTKEY  _IOWR(0x106, 0, unsigned long)
 #define MIYOO_KBD_SET_VER     _IOWR(0x101, 0, unsigned long)
 #define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long)
 #define MIYOO_FB0_SET_MODE    _IOWR(0x101, 0, unsigned long)
@@ -45,12 +46,13 @@
 #define MIYOO_VOL_FILE        "/mnt/.volume.conf"
 #define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
 #define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
-#define MIYOO_BATTERY    "/sys/class/power_supply/miyoo-battery/voltage_now"
+#define MIYOO_BATTERY         "/sys/class/power_supply/miyoo-battery/voltage_now"
 #define MIYOO_BATTERY_FILE    "/mnt/.batterylow.conf"
 
-#define BUTTON_COUNT	10
+#define BUTTON_COUNT	12
 
-unsigned char actionmap[BUTTON_COUNT*2]={0,0,0,0,3,4,2,1,0,13,0,0,0,0,0,0,0,0,20,0};
+unsigned char actionmap[BUTTON_COUNT*2]={0,0,0,0,3,4,2,1,22,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+int hotkey_custom = 1;
 
 
 static void create_daemon(void)
@@ -240,7 +242,7 @@ int main(int argc, char** argv)
   int lid=0, vol=0, fbp=0;
   char buf[255]={0};
   unsigned long ret, lastret, version;
-  int fb0, kbd, snd, vir;
+  int fb0, kbd, snd, vir, fd;
   int battery_low=3550;
   FILE *battery_file;
   char wstr[100];
@@ -278,7 +280,15 @@ int main(int argc, char** argv)
   // buttons
   read_button_config(MIYOO_BUTTON_FILE,actionmap);
   signal(SIGUSR1, my_handler);
-
+  
+  //check if .buttons.conf file exist for custom hotkeys to overwrite kernel's bindings
+  fd = open(MIYOO_BUTTON_FILE, O_RDWR);
+  if(fd < 0){
+    hotkey_custom = 0;
+  }
+  ioctl(kbd, MIYOO_KBD_SET_HOTKEY, hotkey_custom);
+  close(fd);
+  
   // info fb0
   info_fb0(fb0, lid, vol, 0);
 
@@ -500,7 +510,7 @@ int main(int argc, char** argv)
           system("mount -o remount,ro,utf8 /dev/mmcblk0p4");
           break;
       case 13:
-          system("sh -c /mnt/apps/fbgrab/screenshot.sh");
+          system("sh -c mkdir - p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.png ; then i=1 ; while test -e $name-$i.png ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; /usr/bin/fbgrab \"$name\".png");
           break;
       case 20:
         {
@@ -519,6 +529,28 @@ int main(int argc, char** argv)
           if (!son) {
             //execlp("sh", "sh", "/mnt/kernel/killgui.sh", NULL);
             execlp("sh", "sh", "-c", "kill $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2)",  NULL);
+          }
+          break; 
+        }
+      case 22:
+        {
+          //printf("kill\n"); 
+          int status;
+          pid_t son = fork();
+          if (!son) {
+            //execlp("sh", "sh", "/mnt/kernel/killgui.sh", NULL);
+            execlp("sh", "sh", "-c", "/bin/kill -9 $(/bin/ps -al | /bin/grep \"/mnt/\")",  NULL);
+          }
+          break; 
+        }
+      case 23:
+        {
+          //printf("kill\n"); 
+          int status;
+          pid_t son = fork();
+          if (!son) {
+            //execlp("sh", "sh", "/mnt/kernel/killgui.sh", NULL);
+            execlp("sh", "sh", "-c", "/bin/kill -2 $(/bin/ps -al | /bin/grep \"/mnt/\")",  NULL);
           }
           break; 
         }
