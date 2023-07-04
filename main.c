@@ -510,14 +510,14 @@ int main(int argc, char** argv)
           system("mount -o remount,ro,utf8 /dev/mmcblk0p4");
           break;
       case 13:
-          system("sh -c mkdir - p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.png ; then i=1 ; while test -e $name-$i.png ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; /usr/bin/fbgrab \"$name\".png");
+          system("sh -c mkdir - p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.png ; then i=1 ; while test -e $name-$i.png ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; fbgrab \"$name\".png");
           break;
       case 20:
         {
           int status;
           pid_t son = fork();
           if (!son) {
-            execlp("sh", "sh", "-c", "kill $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2) ; sleep 0.1 ; sync && poweroff",  NULL);
+            execlp("sh", "sh", "-c", "kill -9 $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2) ; sleep 0.1 ; sync && swapoff -a && poweroff",  NULL);
           }
           break;
 	        }
