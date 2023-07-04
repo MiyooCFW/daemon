@@ -52,9 +52,7 @@
 
 #define BUTTON_COUNT	12
 
-unsigned char actionmap[BUTTON_COUNT*2]={0,0,0,0,3,4,2,1,22,13,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-int hotkey_custom = 1;
-
+unsigned char actionmap[BUTTON_COUNT*2]={0,0,0,0,3,4,2,1,22,13,23,20,0,0,0,0,0,0,0,0,0,0,0,0};
 
 static void create_daemon(void)
 {
@@ -250,7 +248,8 @@ int main(int argc, char** argv)
   char wstr[100];
   char lstr[256];
   int battery_level;
-  int hotkeys_enabled = -1;
+  int hotkeys_enabled=-1;
+  int hotkey_custom=0;
   setvbuf (stdout, NULL, _IONBF, 0);
 
   create_daemon();
@@ -301,7 +300,6 @@ int main(int argc, char** argv)
     fclose(options_file);
   } else {
   //  printf("Could not open the OPTIONS file.\n");
-    return 1;
   }
 
   //check if button file exist for custom hotkeys to apply or either entry in options file to accept default hotkeys.
@@ -526,7 +524,7 @@ int main(int argc, char** argv)
           info_fb0(fb0, lid, vol, 1); 
         } 
   	break ;
-   	case 11:
+      case 11:
       	  system("mount -o remount,rw,utf8 /dev/mmcblk0p4");
           break;
       case 12:
@@ -537,6 +535,7 @@ int main(int argc, char** argv)
           break;
       case 20:
         {
+          //printf("quick shutdown\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
@@ -546,7 +545,7 @@ int main(int argc, char** argv)
 	        }
       case 21:
         {
-          //printf("kill\n"); 
+          //printf("kill GUI\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
@@ -557,22 +556,20 @@ int main(int argc, char** argv)
         }
       case 22:
         {
-          //printf("kill\n"); 
+          //printf("kill force\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
-            //execlp("sh", "sh", "/mnt/kernel/killgui.sh", NULL);
             execlp("sh", "sh", "-c", "/bin/kill -9 $(/bin/ps -al | /bin/grep \"/mnt/\")",  NULL);
           }
           break; 
         }
       case 23:
         {
-          //printf("kill\n"); 
+          //printf("kill soft\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
-            //execlp("sh", "sh", "/mnt/kernel/killgui.sh", NULL);
             execlp("sh", "sh", "-c", "/bin/kill -2 $(/bin/ps -al | /bin/grep \"/mnt/\")",  NULL);
           }
           break; 
