@@ -48,6 +48,7 @@
 #define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
 #define MIYOO_BATTERY         "/sys/class/power_supply/miyoo-battery/voltage_now"
 #define MIYOO_BATTERY_FILE    "/mnt/.batterylow.conf"
+#define MIYOO_OPTIONS_FILE    "/mnt/options.cfg"
 
 #define BUTTON_COUNT	12
 
@@ -245,8 +246,11 @@ int main(int argc, char** argv)
   int fb0, kbd, snd, vir, fd;
   int battery_low=3550;
   FILE *battery_file;
+  FILE *options_file;
   char wstr[100];
-  int battery_level; 
+  char lstr[256];
+  int battery_level;
+  int hotkeys_enabled = -1;
   setvbuf (stdout, NULL, _IONBF, 0);
 
   create_daemon();
@@ -280,10 +284,29 @@ int main(int argc, char** argv)
   // buttons
   read_button_config(MIYOO_BUTTON_FILE,actionmap);
   signal(SIGUSR1, my_handler);
-  
-  //check if .buttons.conf file exist for custom hotkeys to overwrite kernel's bindings
+
+  options_file = fopen(MIYOO_OPTIONS_FILE, "r");
+  if (options_file != NULL) {
+    while (fgets(lstr, sizeof(lstr), options_file)) {
+      if (strcmp(lstr, "HOTKEY_CUSTOM=1") == 0) {
+        hotkeys_enabled = 1;
+        //printf("%s\n", lstr);
+        break;
+      } else if (strcmp(lstr, "HOTKEY_CUSTOM=0") == 0) {
+        hotkeys_enabled = 0;
+        //printf("%s\n", lstr);
+        break;
+      }
+    }
+    fclose(options_file);
+  } else {
+  //  printf("Could not open the OPTIONS file.\n");
+    return 1;
+  }
+
+  //check if button file exist for custom hotkeys to apply or either entry in options file to accept default hotkeys.
   fd = open(MIYOO_BUTTON_FILE, O_RDWR);
-  if(fd < 0){
+  if((fd >= 0 && hotkeys_enabled == 0) || (fd < 0 && hotkeys_enabled != 1)){
     hotkey_custom = 0;
   }
   ioctl(kbd, MIYOO_KBD_SET_HOTKEY, hotkey_custom);
@@ -314,7 +337,7 @@ int main(int argc, char** argv)
     if (battery_counter == 0){
         battery_file = fopen(MIYOO_BATTERY, "r");
         while ( (fgets(wstr,100,battery_file)) != NULL ) {
-	  battery_level = atoi(wstr) ;
+	        battery_level = atoi(wstr) ;
           //printf("%s\n", wstr);
         }
         fclose(battery_file);

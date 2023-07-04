@@ -20,14 +20,16 @@ Remember: all hotkeys will work only in combination with RESET/HOME button (see 
 | Select | Force-close app |
 
 ## Config
-**WARNING**: custom hotkeys defined here will only work when below file exist:  
-button config location  
+- custom hotkeys config location  
 `/mnt/.buttons.conf`  
-button config format  
+- hotkeys config format  
 `x:a:y:b:up:down:left:right:select:start:l2:r2:hold-x:hold-a:hold-y:hold-b:hold-up:hold-down:hold-left:hold-right:hold-select:hold-start:hold-l2:hold-r2`  
-button config file default values  
+- default hotkeys config values and format (the string must match exactly)
 `0:0:0:0:3:4:2:1:22:13:0:0:0:0:0:0:0:0:0:0:0:0:0:0`  
-<u>NOTE</u>: When enabling custom hotkeys an existing ones will be disable&overwritten by above defaults or any passed by user. However that doesn't apply to hardcoded ones like emulating L1/R1 or other additional buttons.
+**NOTE**: 
+- when enabling custom hotkeys an existing ones will be disabled&overwritten by above defaults or any passed by user. However that doesn't apply to hardcoded ones like emulating L1/R1 or other additional buttons.
+- you can disable/enable custom hotkey bindings in `/mnt/options.cfg` with  HOTKEY_CUSTOM=0 or 1 entry
+- when there's no custom hotkeys config file and HOTKEY_CUSTOM=1 then above default hotkeys apply across device
 
 ## Actions
 1 = backlight up  
