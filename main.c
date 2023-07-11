@@ -249,7 +249,7 @@ int main(int argc, char** argv)
   char lstr[256];
   int battery_level;
   int hotkeys_enabled=-1;
-  int hotkey_custom=0;
+  int hotkey_custom=1;
   setvbuf (stdout, NULL, _IONBF, 0);
 
   create_daemon();
@@ -287,11 +287,11 @@ int main(int argc, char** argv)
   options_file = fopen(MIYOO_OPTIONS_FILE, "r");
   if (options_file != NULL) {
     while (fgets(lstr, sizeof(lstr), options_file)) {
-      if (strcmp(lstr, "HOTKEY_CUSTOM=1") == 0) {
+      if (strcmp(lstr, "HOTKEY_CUSTOM=1\n") == 0) {
         hotkeys_enabled = 1;
         //printf("%s\n", lstr);
         break;
-      } else if (strcmp(lstr, "HOTKEY_CUSTOM=0") == 0) {
+      } else if (strcmp(lstr, "HOTKEY_CUSTOM=0\n") == 0) {
         hotkeys_enabled = 0;
         //printf("%s\n", lstr);
         break;
@@ -394,8 +394,9 @@ int main(int argc, char** argv)
 	  ;
 	  break;
       case 1:
-
         //printf("backlight++\n");
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid < 10){
           lid+= 1;
           write_conf(MIYOO_LID_FILE, lid);
@@ -408,6 +409,8 @@ int main(int argc, char** argv)
         break;
       case 2:
         //printf("backlight--\n");
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid > 1){
           lid-= 1;
           write_conf(MIYOO_LID_FILE, lid);
@@ -418,6 +421,8 @@ int main(int argc, char** argv)
         break;
       case 3:
         //printf("sound++\n");
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol < 9){
           vol+= 1;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -427,6 +432,8 @@ int main(int argc, char** argv)
         break;
       case 4:
         //printf("sound--\n");
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol > 0){
           vol-= 1;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -436,6 +443,8 @@ int main(int argc, char** argv)
         break;
       case 5:
         //printf("mute\n");
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol == 0){
           vol = read_conf(MIYOO_VOL_FILE,5);
           if(vol < 1){
@@ -449,7 +458,9 @@ int main(int argc, char** argv)
         }
         break;
       case 6: 
-        //printf("volume rotate up\n"); 
+        //printf("volume rotate up\n");
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol < 9){ 
           vol+= 1;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -464,6 +475,8 @@ int main(int argc, char** argv)
         break;
       case 7: 
         //printf("volume rotate down\n"); 
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol < 1){ 
           vol = 9;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -478,6 +491,8 @@ int main(int argc, char** argv)
         break;
       case 8: 
         //printf("backlight rotate up\n"); 
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid < 10){ 
           lid+= 1; 
           write_conf(MIYOO_LID_FILE, lid); 
@@ -494,6 +509,8 @@ int main(int argc, char** argv)
         break;
       case 9: 
         //printf("backlight rotate down\n"); 
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid == 1){ 
           lid = 10; 
           write_conf(MIYOO_LID_FILE, lid); 
@@ -510,6 +527,8 @@ int main(int argc, char** argv)
         break;
       case 10: 
         //printf("backlight min max\n"); 
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid != 10){ 
           lid = 10; 
           write_conf(MIYOO_LID_FILE, lid); 
