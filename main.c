@@ -33,6 +33,7 @@
 #define MIYOO_VIR_SET_VER     _IOWR(0x101, 0, unsigned long)
 #define MIYOO_SND_SET_VOLUME  _IOWR(0x100, 0, unsigned long)
 #define MIYOO_KBD_GET_HOTKEY  _IOWR(0x100, 0, unsigned long)
+#define MIYOO_KBD_SET_HOTKEY  _IOWR(0x106, 0, unsigned long)
 #define MIYOO_KBD_SET_VER     _IOWR(0x101, 0, unsigned long)
 #define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long)
 #define MIYOO_FB0_SET_MODE    _IOWR(0x101, 0, unsigned long)
@@ -45,13 +46,13 @@
 #define MIYOO_VOL_FILE        "/mnt/.volume.conf"
 #define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
 #define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
-#define MIYOO_BATTERY    "/sys/class/power_supply/miyoo-battery/voltage_now"
+#define MIYOO_BATTERY         "/sys/class/power_supply/miyoo-battery/voltage_now"
 #define MIYOO_BATTERY_FILE    "/mnt/.batterylow.conf"
+#define MIYOO_OPTIONS_FILE    "/mnt/options.cfg"
 
-#define BUTTON_COUNT	10
+#define BUTTON_COUNT	12
 
-unsigned char actionmap[BUTTON_COUNT*2]={0,0,0,0,3,4,2,1,0,13,0,0,0,0,0,0,0,0,20,0};
-
+unsigned char actionmap[BUTTON_COUNT*2]={0,0,0,0,3,4,2,1,22,13,23,20,0,0,0,0,0,0,0,0,0,0,0,0};
 
 static void create_daemon(void)
 {
@@ -240,11 +241,15 @@ int main(int argc, char** argv)
   int lid=0, vol=0, fbp=0;
   char buf[255]={0};
   unsigned long ret, lastret, version;
-  int fb0, kbd, snd, vir;
+  int fb0, kbd, snd, vir, fd;
   int battery_low=3550;
   FILE *battery_file;
+  FILE *options_file;
   char wstr[100];
-  int battery_level; 
+  char lstr[256];
+  int battery_level;
+  int hotkeys_enabled=-1;
+  int hotkey_custom=1;
   setvbuf (stdout, NULL, _IONBF, 0);
 
   create_daemon();
@@ -279,6 +284,32 @@ int main(int argc, char** argv)
   read_button_config(MIYOO_BUTTON_FILE,actionmap);
   signal(SIGUSR1, my_handler);
 
+  options_file = fopen(MIYOO_OPTIONS_FILE, "r");
+  if (options_file != NULL) {
+    while (fgets(lstr, sizeof(lstr), options_file)) {
+      if (strcmp(lstr, "HOTKEY_CUSTOM=1\n") == 0) {
+        hotkeys_enabled = 1;
+        //printf("%s\n", lstr);
+        break;
+      } else if (strcmp(lstr, "HOTKEY_CUSTOM=0\n") == 0) {
+        hotkeys_enabled = 0;
+        //printf("%s\n", lstr);
+        break;
+      }
+    }
+    fclose(options_file);
+  } else {
+  //  printf("Could not open the OPTIONS file.\n");
+  }
+
+  //check if button file exist for custom hotkeys to apply or either entry in options file to accept default hotkeys.
+  fd = open(MIYOO_BUTTON_FILE, O_RDWR);
+  if((fd >= 0 && hotkeys_enabled == 0) || (fd < 0 && hotkeys_enabled != 1)){
+    hotkey_custom = 0;
+  }
+  ioctl(kbd, MIYOO_KBD_SET_HOTKEY, hotkey_custom);
+  close(fd);
+  
   // info fb0
   info_fb0(fb0, lid, vol, 0);
 
@@ -304,7 +335,7 @@ int main(int argc, char** argv)
     if (battery_counter == 0){
         battery_file = fopen(MIYOO_BATTERY, "r");
         while ( (fgets(wstr,100,battery_file)) != NULL ) {
-	  battery_level = atoi(wstr) ;
+	        battery_level = atoi(wstr) ;
           //printf("%s\n", wstr);
         }
         fclose(battery_file);
@@ -363,8 +394,9 @@ int main(int argc, char** argv)
 	  ;
 	  break;
       case 1:
-
         //printf("backlight++\n");
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid < 10){
           lid+= 1;
           write_conf(MIYOO_LID_FILE, lid);
@@ -377,6 +409,8 @@ int main(int argc, char** argv)
         break;
       case 2:
         //printf("backlight--\n");
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid > 1){
           lid-= 1;
           write_conf(MIYOO_LID_FILE, lid);
@@ -387,6 +421,8 @@ int main(int argc, char** argv)
         break;
       case 3:
         //printf("sound++\n");
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol < 9){
           vol+= 1;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -396,6 +432,8 @@ int main(int argc, char** argv)
         break;
       case 4:
         //printf("sound--\n");
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol > 0){
           vol-= 1;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -405,6 +443,8 @@ int main(int argc, char** argv)
         break;
       case 5:
         //printf("mute\n");
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol == 0){
           vol = read_conf(MIYOO_VOL_FILE,5);
           if(vol < 1){
@@ -418,7 +458,9 @@ int main(int argc, char** argv)
         }
         break;
       case 6: 
-        //printf("volume rotate up\n"); 
+        //printf("volume rotate up\n");
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol < 9){ 
           vol+= 1;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -433,6 +475,8 @@ int main(int argc, char** argv)
         break;
       case 7: 
         //printf("volume rotate down\n"); 
+        vol = read_conf(MIYOO_VOL_FILE,5);
+        sleep(0.1);
         if(vol < 1){ 
           vol = 9;
           write_conf(MIYOO_VOL_FILE, vol);
@@ -447,6 +491,8 @@ int main(int argc, char** argv)
         break;
       case 8: 
         //printf("backlight rotate up\n"); 
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid < 10){ 
           lid+= 1; 
           write_conf(MIYOO_LID_FILE, lid); 
@@ -463,6 +509,8 @@ int main(int argc, char** argv)
         break;
       case 9: 
         //printf("backlight rotate down\n"); 
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid == 1){ 
           lid = 10; 
           write_conf(MIYOO_LID_FILE, lid); 
@@ -479,6 +527,8 @@ int main(int argc, char** argv)
         break;
       case 10: 
         //printf("backlight min max\n"); 
+        lid = read_conf(MIYOO_LID_CONF, 5);
+        sleep(0.1);
         if(lid != 10){ 
           lid = 10; 
           write_conf(MIYOO_LID_FILE, lid); 
@@ -493,32 +543,53 @@ int main(int argc, char** argv)
           info_fb0(fb0, lid, vol, 1); 
         } 
   	break ;
-   	case 11:
+      case 11:
       	  system("mount -o remount,rw,utf8 /dev/mmcblk0p4");
           break;
       case 12:
           system("mount -o remount,ro,utf8 /dev/mmcblk0p4");
           break;
       case 13:
-          system("sh -c /mnt/apps/fbgrab/screenshot.sh");
+          system("sh -c mkdir - p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.png ; then i=1 ; while test -e $name-$i.png ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; fbgrab \"$name\".png");
           break;
       case 20:
         {
+          //printf("quick shutdown\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
-            execlp("sh", "sh", "-c", "kill $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2) ; sleep 0.1 ; sync && poweroff",  NULL);
+            execlp("sh", "sh", "-c", "kill -9 $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2) ; sleep 0.1 ; sync && swapoff -a && poweroff",  NULL);
           }
           break;
 	        }
       case 21:
         {
-          //printf("kill\n"); 
+          //printf("kill GUI\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
             //execlp("sh", "sh", "/mnt/kernel/killgui.sh", NULL);
             execlp("sh", "sh", "-c", "kill $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2)",  NULL);
+          }
+          break; 
+        }
+      case 22:
+        {
+          //printf("kill force\n"); 
+          int status;
+          pid_t son = fork();
+          if (!son) {
+            execlp("sh", "sh", "-c", "/bin/kill -9 $(/bin/ps -al | /bin/grep \"/mnt/\")",  NULL);
+          }
+          break; 
+        }
+      case 23:
+        {
+          //printf("kill soft\n"); 
+          int status;
+          pid_t son = fork();
+          if (!son) {
+            execlp("sh", "sh", "-c", "/bin/kill -2 $(/bin/ps -al | /bin/grep \"/mnt/\")",  NULL);
           }
           break; 
         }
