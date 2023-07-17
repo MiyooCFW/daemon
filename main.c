@@ -550,7 +550,10 @@ int main(int argc, char** argv)
           system("mount -o remount,ro,utf8 /dev/mmcblk0p4");
           break;
       case 13:
-          system("mkdir -p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.png ; then i=1 ; while test -e $name-$i.png ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; fbgrab \"$name\".png");
+          system("mkdir -p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.png ; then i=1 ; while test -e $name-$i.png ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; fbgrab -z0 \"$name\".png");
+          break;
+      case 14:
+          system("mkdir -p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.ppm ; then i=1 ; while test -e $name-$i.ppm ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; fbcat > \"$name\".ppm");
           break;
       case 20:
         {
