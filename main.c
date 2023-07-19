@@ -555,6 +555,9 @@ int main(int argc, char** argv)
       case 14:
           system("mkdir -p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.ppm ; then i=1 ; while test -e $name-$i.ppm ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; fbcat > \"$name\".ppm");
           break;
+      case 15:
+          system("mkdir -p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.raw ; then i=1 ; while test -e $name-$i.raw ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; dd if=/dev/fb0 of=\"$name\".raw bs=1M");
+          break;
       case 20:
         {
           //printf("quick shutdown\n"); 

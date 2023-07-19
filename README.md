@@ -47,8 +47,9 @@ Remember: all hotkeys will work only in combination with RESET/HOME button (see 
 10 = backlight min max  
 11 = remount /mnt as rw  
 12 = remount /mnt as ro  
-13 = screenshot in PNG using fbgrab (slow - more accurate)  
-14 = screenshot in PPM using fbcat (fast - less accurate)  
+13 = screenshot in PNG using fbgrab (slow/accurate)  
+14 = screenshot in PPM using fbcat (fast/less accurate)  
+15 = screenshot in RAW framebuffer data - copy of=/dev/fb0 (fast/accurate)  
 20 = kill, sync and shutdown (quick shutdown)  
 21 = kill gui. Does not work on most apps. do not use  
 22 = kill force app. Work on most apps.  
