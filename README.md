@@ -50,7 +50,8 @@ Remember: all hotkeys will work only in combination with RESET/HOME button (see 
 13 = screenshot in PNG using fbgrab (slow/accurate)  
 14 = screenshot in PPM using fbcat (fast/less accurate)  
 15 = screenshot in RAW framebuffer data - copy of=/dev/fb0 (fast/accurate)  
-20 = kill, sync and shutdown (quick shutdown)  
+19 = kill force, sync and reboot (quick reboot force)  
+20 = kill force, sync and shutdown (quick shutdown force)  
 21 = kill gui. Does not work on most apps. do not use  
 22 = kill force app. Work on most apps.  
 23 = kill soft app. Work on a few apps, guaranties proper closing.  

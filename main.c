@@ -558,16 +558,26 @@ int main(int argc, char** argv)
       case 15:
           system("mkdir -p /mnt/screenshots ; name=/mnt/screenshots/system ; if test -e $name.raw ; then i=1 ; while test -e $name-$i.raw ; do i=$((i+1)) ; done; name=\"$name-$i\" ; fi ; dd if=/dev/fb0 of=\"$name\".raw bs=1M");
           break;
+      case 19:
+        {
+          //printf("quick reboot (forced)\n"); 
+          int status;
+          pid_t son = fork();
+          if (!son) {
+            execlp("sh", "sh", "-c", "kill -9 $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2) ; sleep 0.1 ; sync && swapoff -a && reboot",  NULL);
+          }
+          break;
+        }
       case 20:
         {
-          //printf("quick shutdown\n"); 
+          //printf("quick shutdown (forced)\n"); 
           int status;
           pid_t son = fork();
           if (!son) {
             execlp("sh", "sh", "-c", "kill -9 $(ps -al | grep \"/mnt/\" | grep -v \"/kernel/\" | tr -s [:blank:] | cut -d \" \" -f 2) ; sleep 0.1 ; sync && swapoff -a && poweroff",  NULL);
           }
           break;
-	        }
+        }
       case 21:
         {
           //printf("kill GUI\n"); 
