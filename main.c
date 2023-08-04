@@ -329,6 +329,7 @@ int main(int argc, char** argv)
   unsigned int actioned = 0;
   unsigned int battery_counter = 0;
   unsigned int battery_flash_counter = 0;
+  unsigned int lid_sys = 0;
   while(1){
     usleep(40000);
     
@@ -351,29 +352,32 @@ int main(int argc, char** argv)
       }
 
     battery_flash_counter%=4000;
-    
-    if ((battery_flash_counter<299)&&(battery_flash_counter>210)) {
+    if (battery_flash_counter < 210 || battery_flash_counter > 299) {
+        lid_sys = read_conf(MIYOO_LID_CONF, 5);
+    } else if (battery_flash_counter > 210 && battery_flash_counter < 299) {
           //bright
-      if(version<3) {
+      if (version < 3) {
               sprintf(buf, "echo %d > %s", ((battery_flash_counter % 6) +4), MIYOO_LID_CONF); 
               system(buf); 
-      } else if(battery_flash_counter == 211) {
+      } else if (battery_flash_counter == 211) {
         vir = open("/dev/miyoo_vir", O_RDWR);
-          if(vir > 0){
+          if (vir > 0) {
             ioctl(vir, MIYOO_VIR_SET_MODE, 0);
             close(vir);
           }
       }
-    } else if(battery_flash_counter==300 && version > 2 ) {
+    } else if (battery_flash_counter == 299 && version > 2 ) {
       vir = open("/dev/miyoo_vir", O_RDWR);
-       if(vir > 0){
+       if (vir > 0) {
          ioctl(vir, MIYOO_VIR_SET_MODE, 1);
          close(vir);
        }
+    } else if (battery_flash_counter == 210 || battery_flash_counter == 299) {
+        sprintf(buf, "echo %i > " MIYOO_LID_CONF, lid_sys);
+        system(buf);
     }
-
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
-    if(ret == 0 && lastret == 0){
+    if (ret == 0 && lastret == 0) {
       actioned = 0;
       continue;
     } else if (ret == lastret) {
@@ -391,8 +395,8 @@ int main(int argc, char** argv)
       actioned = 1;
       switch(actionmap[lastret-1]){
       case 0:
-	  ;
-	  break;
+      ;
+      break;
       case 1:
         //printf("backlight++\n");
         lid = read_conf(MIYOO_LID_CONF, 5);
