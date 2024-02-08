@@ -245,6 +245,8 @@ int main(int argc, char** argv)
   int battery_low=3550;
   FILE *battery_file;
   FILE *options_file;
+  FILE *backlight_file;
+  // FILE *volume_file;
   char wstr[100];
   char lstr[256];
   int battery_level;
@@ -353,7 +355,13 @@ int main(int argc, char** argv)
 
     battery_flash_counter%=4000;
     if (battery_flash_counter < 210 || battery_flash_counter > 299) {
+      backlight_file = fopen(MIYOO_LID_FILE, "r");
+      if (backlight_file != NULL) {
+        lid_sys = read_conf(MIYOO_LID_FILE, 5);
+        fclose(backlight_file);
+      } else {
         lid_sys = read_conf(MIYOO_LID_CONF, 5);
+      }
     } else if (battery_flash_counter > 210 && battery_flash_counter < 299) {
           //bright
       if (version < 3) {
@@ -373,7 +381,7 @@ int main(int argc, char** argv)
          close(vir);
        }
     } else if (battery_flash_counter == 210 || battery_flash_counter == 299) {
-        sprintf(buf, "echo %i > " MIYOO_LID_CONF, lid_sys);
+        sprintf(buf, "echo %d > %s", lid_sys, MIYOO_LID_CONF);
         system(buf);
     }
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
