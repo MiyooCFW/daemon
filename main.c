@@ -17,23 +17,44 @@
 #define MIYOO_VIR_SET_MODE    _IOWR(0x100, 0, unsigned long)
 #define MIYOO_VIR_SET_VER     _IOWR(0x101, 0, unsigned long)
 #define MIYOO_SND_SET_VOLUME  _IOWR(0x100, 0, unsigned long)
+#define MIYOO_SND_GET_VOLUME  _IOWR(0x101, 0, unsigned long)
+#define MIYOO_SND_JACK_STATUS _IOWR(0x102, 0, unsigned long)
+#define MIYOO_TV_JACK_STATUS  _IOWR(0x103, 0, unsigned long)
 #define MIYOO_KBD_GET_HOTKEY  _IOWR(0x100, 0, unsigned long)
-#define MIYOO_KBD_SET_HOTKEY  _IOWR(0x106, 0, unsigned long)
 #define MIYOO_KBD_SET_VER     _IOWR(0x101, 0, unsigned long)
+#define MIYOO_KBD_LOCK_KEY    _IOWR(0x102, 0, unsigned long) //unused
+#define MIYOO_LAY_SET_VER     _IOWR(0x103, 0, unsigned long)
+#define MIYOO_KBD_GET_VER     _IOWR(0x104, 0, unsigned long)
+#define MIYOO_LAY_GET_VER     _IOWR(0x105, 0, unsigned long)
+#define MIYOO_KBD_SET_HOTKEY  _IOWR(0x106, 0, unsigned long)
 #define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long)
 #define MIYOO_FB0_SET_MODE    _IOWR(0x101, 0, unsigned long)
 #define MIYOO_FB0_GET_VER     _IOWR(0x102, 0, unsigned long)
+#define MIYOO_FB0_SET_FLIP    _IOWR(0x103, 0, unsigned long) //unused
 #define MIYOO_FB0_SET_FPBP    _IOWR(0x104, 0, unsigned long)
 #define MIYOO_FB0_GET_FPBP    _IOWR(0x105, 0, unsigned long)
+#define MIYOO_FB0_SET_TEFIX   _IOWR(0x106, 0, unsigned long)
+#define MIYOO_FB0_GET_TEFIX   _IOWR(0x107, 0, unsigned long)
 
+#define MIYOO_HOME_DIR        "/mnt"
+#define MIYOO_ROMS_DIR        "/roms"
 #define MIYOO_FBP_FILE        "/mnt/.fpbp.conf"
 #define MIYOO_LID_FILE        "/mnt/.backlight.conf"
 #define MIYOO_VOL_FILE        "/mnt/.volume.conf"
-#define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
 #define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
-#define MIYOO_BATTERY         "/sys/class/power_supply/miyoo-battery/voltage_now"
 #define MIYOO_BATTERY_FILE    "/mnt/.batterylow.conf"
 #define MIYOO_OPTIONS_FILE    "/mnt/options.cfg"
+#define MIYOO_TVMODE_FILE     "/mnt/.tvmode"
+#define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
+#define MIYOO_BATTERY         "/sys/devices/platform/soc/1c23400.battery/power_supply/miyoo-battery/voltage_now"
+#define MIYOO_BATTERY_STATUS  "/sys/class/power_supply/miyoo-battery/status"
+#define MIYOO_USB_STATE       "/sys/devices/platform/soc/1c13000.usb/musb-hdrc.1.auto/udc/musb-hdrc.1.auto/state"
+#define MIYOO_USB_SUSPEND     "/sys/devices/platform/soc/1c13000.usb/musb-hdrc.1.auto/gadget/suspended"
+#define MIYOO_SND_FILE        "/dev/miyoo_snd"
+#define MIYOO_FB0_FILE        "/dev/miyoo_fb0"
+#define MIYOO_KBD_FILE        "/dev/miyoo_kbd"
+#define MIYOO_VIR_FILE        "/dev/miyoo_vir"
+#define MIYOO_SWAP_FILE       "/dev/mmcblk0p3"
 
 #define BUTTON_COUNT	12
 
