@@ -13,6 +13,7 @@
 #include <sys/fcntl.h> 
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <time.h>
 
 #define MIYOO_VIR_SET_MODE    _IOWR(0x100, 0, unsigned long)
 #define MIYOO_VIR_SET_VER     _IOWR(0x101, 0, unsigned long)
@@ -43,6 +44,7 @@
 #define MIYOO_VOL_FILE        "/mnt/.volume.conf"
 #define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
 #define MIYOO_BATTERY_FILE    "/mnt/.batterylow.conf"
+#define MIYOO_DATE_FILE       "/mnt/.date.conf"
 #define MIYOO_TVMODE_FILE     "/mnt/.tvmode"
 #define MIYOO_OPTIONS_FILE    "/boot/options.cfg"
 #define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
@@ -242,6 +244,27 @@ void my_handler(int signum)
     }
 }
 
+void get_date_time(char *out, size_t size) {
+    time_t now = time(NULL);
+    struct tm t;
+    localtime_r(&now, &t);
+    strftime(out, size, "%F %R", &t);
+}
+
+void write_date_time(const char *file)
+{
+  int fd;
+  char buf[80];
+  
+  get_date_time(buf, sizeof(buf));
+  fd = open(file, O_WRONLY | O_CREAT | O_TRUNC);
+  
+  if(fd > 0){
+    write(fd, buf, strlen(buf));
+    close(fd);
+  }
+}
+
 int main(int argc, char** argv)
 {
   int lid=0, vol=0, fbp=0;
@@ -307,7 +330,7 @@ int main(int argc, char** argv)
     }
     fclose(options_file);
   } else {
-  //  printf("Could not open the OPTIONS file.\n");
+    // printf("Could not open the OPTIONS file.\n");
   }
 
   //check if button file exist for custom hotkeys to apply or either entry in options file to accept default hotkeys.
@@ -317,7 +340,7 @@ int main(int argc, char** argv)
   }
   ioctl(kbd, MIYOO_KBD_SET_HOTKEY, hotkey_custom);
   close(fd);
-  
+
   // info fb0
   info_fb0(fb0, lid, vol, 0);
 
@@ -340,7 +363,7 @@ int main(int argc, char** argv)
   unsigned int lid_sys = 0;
   while(1){
     usleep(40000);
-    
+    write_date_time(MIYOO_DATE_FILE);
     if (battery_counter == 0){
         battery_file = fopen(MIYOO_BATTERY, "r");
         while ( (fgets(wstr,100,battery_file)) != NULL ) {
