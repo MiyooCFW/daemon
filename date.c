@@ -1,23 +1,33 @@
-#include <ctime>
-#include <sys/time.h>
+#include <time.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
-#include <string>
 
 const char* nowtime = "2025-12-03 18:34";
+char datebuf[80];
 
-const std::string get_date_time() {
-	char buf[80];
-	time_t now = time(0);
-	struct tm tstruct = *localtime(&now);
-	strftime(buf, sizeof(buf), "%F %R", &tstruct);
-	return buf;
+void get_date_time(char *out, size_t size) {
+    time_t now = time(NULL);
+    struct tm t;
+    localtime_r(&now, &t);
+    strftime(out, size, "%F %R", &t);
 }
 
 void sync_date_time(time_t t) {
-	struct timeval tv = { t, 0 };
-	settimeofday(&tv, NULL);
+    struct tm tmv;
+    localtime_r(&t, &tmv);
+
+    char cmd[128];
+    snprintf(cmd, sizeof(cmd),
+             "date -s \"%04d-%02d-%02d %02d:%02d:00\"",
+             tmv.tm_year + 1900,
+             tmv.tm_mon + 1,
+             tmv.tm_mday,
+             tmv.tm_hour,
+             tmv.tm_min);
+
+    system(cmd);
 }
 
 void set_date_time(const char* timestamp) {
@@ -41,9 +51,10 @@ void set_date_time(const char* timestamp) {
 	sync_date_time(t);
 }
 
-main() {
+int main() {
     set_date_time(nowtime);
 	usleep(10000);
-	printf("current time set=%s\n", get_date_time().c_str());
+	get_date_time(datebuf, sizeof(datebuf));
+	printf("current time set=%s\n", datebuf);
 	return 0;
 }
