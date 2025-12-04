@@ -28,7 +28,7 @@
 #define MIYOO_KBD_GET_VER     _IOWR(0x104, 0, unsigned long)
 #define MIYOO_LAY_GET_VER     _IOWR(0x105, 0, unsigned long)
 #define MIYOO_KBD_SET_HOTKEY  _IOWR(0x106, 0, unsigned long)
-#define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long)
+#define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long) //to be implemented
 #define MIYOO_FB0_SET_MODE    _IOWR(0x101, 0, unsigned long)
 #define MIYOO_FB0_GET_VER     _IOWR(0x102, 0, unsigned long)
 #define MIYOO_FB0_SET_FLIP    _IOWR(0x103, 0, unsigned long) //unused
@@ -300,8 +300,7 @@ int main(int argc, char** argv)
     lid = 5;
     write_conf(MIYOO_LID_FILE, lid);
   }
-  sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-  system(buf);
+  write_conf(MIYOO_LID_CONF, lid);
   
   // volume
   vol = read_conf(MIYOO_VOL_FILE,5);
@@ -394,8 +393,7 @@ int main(int argc, char** argv)
     } else if (battery_flash_counter > 210 && battery_flash_counter < 299) {
           //bright
       if (version < 3) {
-              sprintf(buf, "echo %d > %s", ((battery_flash_counter % 6) +4), MIYOO_LID_CONF); 
-              system(buf); 
+              write_conf(MIYOO_LID_CONF, ((battery_flash_counter % 6) +4));
       } else if (battery_flash_counter == 211) {
         vir = open("/dev/miyoo_vir", O_RDWR);
           if (vir > 0) {
@@ -410,8 +408,7 @@ int main(int argc, char** argv)
          close(vir);
        }
     } else if (battery_flash_counter == 210 || battery_flash_counter == 299) {
-        sprintf(buf, "echo %d > %s", lid_sys, MIYOO_LID_CONF);
-        system(buf);
+        write_conf(MIYOO_LID_CONF, lid_sys);
     }
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
     if (ret == 0 && lastret == 0) {
@@ -441,8 +438,7 @@ int main(int argc, char** argv)
         if(lid < 10){
           lid+= 1;
           write_conf(MIYOO_LID_FILE, lid);
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-          system(buf);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1);
         }
 /**/
@@ -455,8 +451,7 @@ int main(int argc, char** argv)
         if(lid > 1){
           lid-= 1;
           write_conf(MIYOO_LID_FILE, lid);
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-          system(buf);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1);
         }
         break;
@@ -537,14 +532,12 @@ int main(int argc, char** argv)
         if(lid < 10){ 
           lid+= 1; 
           write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } else { 
           lid= 1; 
           write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } 
         break;
@@ -554,15 +547,13 @@ int main(int argc, char** argv)
         sleep(0.1);
         if(lid == 1){ 
           lid = 10; 
-          write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_FILE, lid);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } else { 
           lid -= 1; 
-          write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_FILE, lid);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } 
         break;
@@ -572,15 +563,13 @@ int main(int argc, char** argv)
         sleep(0.1);
         if(lid != 10){ 
           lid = 10; 
-          write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_FILE, lid);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } else { 
           lid = 2; 
-          write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_FILE, lid);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } 
   	break ;
