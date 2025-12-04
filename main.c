@@ -359,11 +359,13 @@ int main(int argc, char** argv)
   unsigned int actioned = 0;
   unsigned int battery_counter = 0;
   unsigned int battery_flash_counter = 0;
+  unsigned int datetime_counter = 0;
+  unsigned int datetime_write_counter = 0;
   unsigned int lid_sys = 0;
   while(1){
     usleep(40000);
-    write_date_time(MIYOO_DATE_FILE);
     if (battery_counter == 0){
+        write_date_time(MIYOO_DATE_FILE);
         battery_file = fopen(MIYOO_BATTERY, "r");
         while ( (fgets(wstr,100,battery_file)) != NULL ) {
 	        battery_level = atoi(wstr) ;
@@ -374,6 +376,13 @@ int main(int argc, char** argv)
 
     battery_counter++;
     battery_counter%=750;
+
+    if (datetime_counter == 0){
+      write_date_time(MIYOO_DATE_FILE);
+    }
+
+    datetime_counter++;
+    datetime_write_counter%=1500;
 
       if(battery_level > 0 && battery_level <  battery_low) {
         battery_flash_counter++;
