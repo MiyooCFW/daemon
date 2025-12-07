@@ -13,27 +13,50 @@
 #include <sys/fcntl.h> 
 #include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <time.h>
 
 #define MIYOO_VIR_SET_MODE    _IOWR(0x100, 0, unsigned long)
 #define MIYOO_VIR_SET_VER     _IOWR(0x101, 0, unsigned long)
 #define MIYOO_SND_SET_VOLUME  _IOWR(0x100, 0, unsigned long)
+#define MIYOO_SND_GET_VOLUME  _IOWR(0x101, 0, unsigned long)
+#define MIYOO_SND_JACK_STATUS _IOWR(0x102, 0, unsigned long)
+#define MIYOO_TV_JACK_STATUS  _IOWR(0x103, 0, unsigned long)
 #define MIYOO_KBD_GET_HOTKEY  _IOWR(0x100, 0, unsigned long)
-#define MIYOO_KBD_SET_HOTKEY  _IOWR(0x106, 0, unsigned long)
 #define MIYOO_KBD_SET_VER     _IOWR(0x101, 0, unsigned long)
-#define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long)
+#define MIYOO_KBD_LOCK_KEY    _IOWR(0x102, 0, unsigned long) //unused
+#define MIYOO_LAY_SET_VER     _IOWR(0x103, 0, unsigned long)
+#define MIYOO_KBD_GET_VER     _IOWR(0x104, 0, unsigned long)
+#define MIYOO_LAY_GET_VER     _IOWR(0x105, 0, unsigned long)
+#define MIYOO_KBD_SET_HOTKEY  _IOWR(0x106, 0, unsigned long)
+#define MIYOO_FB0_PUT_OSD     _IOWR(0x100, 0, unsigned long) //to be implemented
 #define MIYOO_FB0_SET_MODE    _IOWR(0x101, 0, unsigned long)
 #define MIYOO_FB0_GET_VER     _IOWR(0x102, 0, unsigned long)
+#define MIYOO_FB0_SET_FLIP    _IOWR(0x103, 0, unsigned long) //unused
 #define MIYOO_FB0_SET_FPBP    _IOWR(0x104, 0, unsigned long)
 #define MIYOO_FB0_GET_FPBP    _IOWR(0x105, 0, unsigned long)
+#define MIYOO_FB0_SET_TEFIX   _IOWR(0x106, 0, unsigned long)
+#define MIYOO_FB0_GET_TEFIX   _IOWR(0x107, 0, unsigned long)
 
+#define MIYOO_HOME_DIR        "/mnt"
+#define MIYOO_ROMS_DIR        "/roms"
 #define MIYOO_FBP_FILE        "/mnt/.fpbp.conf"
 #define MIYOO_LID_FILE        "/mnt/.backlight.conf"
 #define MIYOO_VOL_FILE        "/mnt/.volume.conf"
-#define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
 #define MIYOO_BUTTON_FILE     "/mnt/.buttons.conf"
-#define MIYOO_BATTERY         "/sys/class/power_supply/miyoo-battery/voltage_now"
 #define MIYOO_BATTERY_FILE    "/mnt/.batterylow.conf"
-#define MIYOO_OPTIONS_FILE    "/mnt/options.cfg"
+#define MIYOO_DATE_FILE       "/mnt/.date.conf"
+#define MIYOO_TVMODE_FILE     "/mnt/.tvmode"
+#define MIYOO_OPTIONS_FILE    "/boot/options.cfg"
+#define MIYOO_LID_CONF        "/sys/devices/platform/backlight/backlight/backlight/brightness"
+#define MIYOO_BATTERY         "/sys/devices/platform/soc/1c23400.battery/power_supply/miyoo-battery/voltage_now"
+#define MIYOO_BATTERY_STATUS  "/sys/class/power_supply/miyoo-battery/status"
+#define MIYOO_USB_STATE       "/sys/devices/platform/soc/1c13000.usb/musb-hdrc.1.auto/udc/musb-hdrc.1.auto/state"
+#define MIYOO_USB_SUSPEND     "/sys/devices/platform/soc/1c13000.usb/musb-hdrc.1.auto/gadget/suspended"
+#define MIYOO_SND_FILE        "/dev/miyoo_snd"
+#define MIYOO_FB0_FILE        "/dev/miyoo_fb0"
+#define MIYOO_KBD_FILE        "/dev/miyoo_kbd"
+#define MIYOO_VIR_FILE        "/dev/miyoo_vir"
+#define MIYOO_SWAP_FILE       "/dev/mmcblk0p3"
 
 #define BUTTON_COUNT	12
 
@@ -221,6 +244,27 @@ void my_handler(int signum)
     }
 }
 
+void get_date_time(char *out, size_t size) {
+    time_t now = time(NULL);
+    struct tm t;
+    localtime_r(&now, &t);
+    strftime(out, size, "%F %R", &t);
+}
+
+void write_date_time(const char *file)
+{
+  int fd;
+  char buf[80];
+  
+  get_date_time(buf, sizeof(buf));
+  fd = open(file, O_WRONLY | O_CREAT | O_TRUNC);
+  
+  if(fd > 0){
+    write(fd, buf, strlen(buf));
+    close(fd);
+  }
+}
+
 int main(int argc, char** argv)
 {
   int lid=0, vol=0, fbp=0;
@@ -256,8 +300,7 @@ int main(int argc, char** argv)
     lid = 5;
     write_conf(MIYOO_LID_FILE, lid);
   }
-  sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-  system(buf);
+  write_conf(MIYOO_LID_CONF, lid);
   
   // volume
   vol = read_conf(MIYOO_VOL_FILE,5);
@@ -286,7 +329,7 @@ int main(int argc, char** argv)
     }
     fclose(options_file);
   } else {
-  //  printf("Could not open the OPTIONS file.\n");
+    // printf("Could not open the OPTIONS file.\n");
   }
 
   //check if button file exist for custom hotkeys to apply or either entry in options file to accept default hotkeys.
@@ -296,7 +339,7 @@ int main(int argc, char** argv)
   }
   ioctl(kbd, MIYOO_KBD_SET_HOTKEY, hotkey_custom);
   close(fd);
-  
+
   // info fb0
   info_fb0(fb0, lid, vol, 0);
 
@@ -316,11 +359,13 @@ int main(int argc, char** argv)
   unsigned int actioned = 0;
   unsigned int battery_counter = 0;
   unsigned int battery_flash_counter = 0;
+  unsigned int datetime_counter = 0;
+  unsigned int datetime_write_counter = 0;
   unsigned int lid_sys = 0;
   while(1){
     usleep(40000);
-    
     if (battery_counter == 0){
+        write_date_time(MIYOO_DATE_FILE);
         battery_file = fopen(MIYOO_BATTERY, "r");
         while ( (fgets(wstr,100,battery_file)) != NULL ) {
 	        battery_level = atoi(wstr) ;
@@ -331,6 +376,13 @@ int main(int argc, char** argv)
 
     battery_counter++;
     battery_counter%=750;
+
+    if (datetime_counter == 0){
+      write_date_time(MIYOO_DATE_FILE);
+    }
+
+    datetime_counter++;
+    datetime_write_counter%=1500;
 
       if(battery_level > 0 && battery_level <  battery_low) {
         battery_flash_counter++;
@@ -350,8 +402,7 @@ int main(int argc, char** argv)
     } else if (battery_flash_counter > 210 && battery_flash_counter < 299) {
           //bright
       if (version < 3) {
-              sprintf(buf, "echo %d > %s", ((battery_flash_counter % 6) +4), MIYOO_LID_CONF); 
-              system(buf); 
+              write_conf(MIYOO_LID_CONF, ((battery_flash_counter % 6) +4));
       } else if (battery_flash_counter == 211) {
         vir = open("/dev/miyoo_vir", O_RDWR);
           if (vir > 0) {
@@ -366,8 +417,7 @@ int main(int argc, char** argv)
          close(vir);
        }
     } else if (battery_flash_counter == 210 || battery_flash_counter == 299) {
-        sprintf(buf, "echo %d > %s", lid_sys, MIYOO_LID_CONF);
-        system(buf);
+        write_conf(MIYOO_LID_CONF, lid_sys);
     }
     ioctl(kbd, MIYOO_KBD_GET_HOTKEY, &ret);
     if (ret == 0 && lastret == 0) {
@@ -397,8 +447,7 @@ int main(int argc, char** argv)
         if(lid < 10){
           lid+= 1;
           write_conf(MIYOO_LID_FILE, lid);
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-          system(buf);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1);
         }
 /**/
@@ -411,8 +460,7 @@ int main(int argc, char** argv)
         if(lid > 1){
           lid-= 1;
           write_conf(MIYOO_LID_FILE, lid);
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF);
-          system(buf);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1);
         }
         break;
@@ -493,14 +541,12 @@ int main(int argc, char** argv)
         if(lid < 10){ 
           lid+= 1; 
           write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } else { 
           lid= 1; 
           write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } 
         break;
@@ -510,15 +556,13 @@ int main(int argc, char** argv)
         sleep(0.1);
         if(lid == 1){ 
           lid = 10; 
-          write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_FILE, lid);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } else { 
           lid -= 1; 
-          write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_FILE, lid);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } 
         break;
@@ -528,15 +572,13 @@ int main(int argc, char** argv)
         sleep(0.1);
         if(lid != 10){ 
           lid = 10; 
-          write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_FILE, lid);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } else { 
           lid = 2; 
-          write_conf(MIYOO_LID_FILE, lid); 
-          sprintf(buf, "echo %d > %s", lid, MIYOO_LID_CONF); 
-          system(buf); 
+          write_conf(MIYOO_LID_FILE, lid);
+          write_conf(MIYOO_LID_CONF, lid);
           info_fb0(fb0, lid, vol, 1); 
         } 
   	break ;
